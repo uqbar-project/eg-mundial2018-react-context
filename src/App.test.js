@@ -1,18 +1,9 @@
 import React from 'react'
-import 'jest-enzyme'
-import { configure } from 'enzyme'
-import Adapter from 'enzyme-adapter-react-16'
-import { shallow, mount } from 'enzyme'
+import { shallow } from 'enzyme'
 import App from './App'
-import { Provider } from './context/Context'
-import { MatchService } from './services/matchService'
 import { Country } from './domain/country'
 import { CountryRow } from './components/countryRow'
 import { CountrySearch } from './components/countrySearch'
-import { Results } from './components/results'
-import configureStore from 'redux-mock-store'
-
-configure({ adapter: new Adapter() })
 
 it('app levanta ok', () => {
   shallow(<App />)
