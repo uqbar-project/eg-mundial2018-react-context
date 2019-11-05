@@ -1,68 +1,130 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Mundial 2018 Rusia (React Context)
 
-## Available Scripts
+[![Build Status](https://travis-ci.org/uqbar-project/eg-mundial2018-react-context.svg?branch=master)](https://travis-ci.org/uqbar-project/eg-mundial2018-react-context)
 
-In the project directory, you can run:
+<img src="video/demo.gif" height="130%" width="130%"/>
 
-### `npm start`
+En la tercera iteración, vamos a modificar el caso de uso "Cargar resultados del mundial" para incorporarle una tabla de posiciones dinámica.
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+# Rutas
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+No hay nuevas rutas en nuestra aplicación, pero sí hacemos una ligera modificación:
 
-### `npm test`
+- la ruta raíz '/' muestra la búsqueda de países que participan del mundial
+- reemplazamos la ruta '/resultados' por '/fixture'
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# Fixture: resultados + tabla de posiciones
 
-### `npm run build`
+## Componentes visuales
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+![image](images/ComponentesFixture.png)
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+## Armado de la tabla de posiciones
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Para armar la tabla de posiciones, tomamos como input la lista de partido y hacemos un doble corte de control:
 
-### `npm run eject`
+- primero por grupo
+- luego por país
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+Es decir, tenemos un mapa:
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+![image](images/TablaPosiciones.png)
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Recorremos los partidos generando o actualizando el mapa por grupo y país (archivo _positionTable.js_):
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```javascript
+const positions = new Map()
+this.props.matches.forEach(match => {
+    const group = match.group()
+    const groupPosition = positions.get(group) || new GroupPosition(group)
+    groupPosition.processMatch(match)
+    positions.set(group, groupPosition)
+})
+```
 
-## Learn More
+El método processMatch de PositionGroup hace el procesamiento para el equipo local y el visitante:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```javascript
+    processMatch(match) {
+        this.searchPositionItem(match.teamA).processMatch(match.goalsA, match.goalsB)
+        this.searchPositionItem(match.teamB).processMatch(match.goalsB, match.goalsA)
+    }
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+    searchPositionItem(team) {
+        let result = this.positionItems.find(item => item.team.matches(team))
+        if (!result) {
+            result = new PositionItem(team)
+            this.positionItems.push(result)
+        }
+        return result
+    }
+```
 
-### Code Splitting
+Veamos el método processMatch del objeto de negocio positionItem, que representa una línea dentro de la tabla de posiciones:
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+```javascript
+processMatch(goalsOwn, goalsAgainst) {
+    if (goalsOwn === undefined || goalsAgainst === undefined) return
+    this.goalsOwn += goalsOwn
+    this.goalsAgainst += goalsAgainst
+    if (goalsOwn > goalsAgainst) this.won++
+    if (goalsOwn < goalsAgainst) this.lost++
+    if (goalsOwn === goalsAgainst) this.tied++
+}
+```
 
-### Analyzing the Bundle Size
+Para mostrar la tabla, el componente PositionTable (vista) en su método render dibuja la tabla de la siguiente manera:
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+```javascript
+return (
+    <Card key={'cardPosiciones'}>
+        <CardContent key={'contentPosiciones'}>
+            <h3>Tabla de posiciones</h3>
+            {[...positions].map((itemGroup) => {
+                const group = itemGroup[0]
+                const positions = itemGroup[1].positions()
+                return <PositionGroupTable group={group} positions={positions} key={'positions_group_' + group} />
+            }
+            )}
+        </CardContent>
+    </Card>
+)
+```
 
-### Making a Progressive Web App
+Partimos de positions, que es el mapa que construimos previamente. Como el mapa de ECMAScript no conoce la función map, tenemos que pasarlo a una lista utilizando el _spread operator_ `[...positions]`. Esto nos da una lista de objetos que tiene `{grupo: nombre_grupo, groupPosition: lista_de_equipos}`. Pero como la lista de equipos no está ordenada, llamamos a un método en groupPosition que ordena los equipos por puntos:
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+```javascript
+>>GroupPosition
+positions() {
+    return this.positionItems.sort((item1, item2) => item1.order <= item2.order)
+}
 
-### Advanced Configuration
+>>PositionItem
+get order() {
+    return this.points * 10000 + this.goalAverage * 100 + this.goalsOwn
+}
+get points() {
+    return this.won * 3 + this.tied
+}
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+Bueno, no solo por puntos, también por diferencia de gol y goles a favor.
 
-### Deployment
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
+# React-Context: Estado compartido entre componentes
 
-### `npm run build` fails to minify
+Tenemos dos componentes que tienen un estado compartido: 
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+- el componente Results toma como input los partidos del mundial para eventualmente filtrar los de una zona seleccionada (o directamente mostrar todos), y permite editar los resultados del mundial
+- el componente PositionTable toma como input los partidos del mundial para armar las tablas de posiciones
+
+Pero además, si alguien modifica un resultado (componente _MatchRow_ hijo del componente padre _Results_), eso debería actualizar la tabla de posiciones. React tiene mecanismos para actualizar estados desde un componente hacia otros, pero esta es una buena ocasión para incorporar **React Context** a nuestra aplicación, que nos va a permitir manejar un estado compartido entre componentes para simplificar el esquema de notificaciones ante un cambio.
+
+Para una explicación más detallada podés consultar [el ejemplo del contador con React Context](https://github.com/uqbar-project/eg-contador-react-context)
+
+Veamos cómo se implementa dentro del ejemplo del mundial.
+
+## Context
+
+El context va a guardar los resultados, inicialmente tendrá la lista de partidos vacía.
+
