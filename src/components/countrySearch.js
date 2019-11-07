@@ -4,10 +4,9 @@ import { CountryList } from './countryList'
 import { Country } from '../domain/country'
 
 import TextField from '@material-ui/core/TextField'
-import MenuItem from '@material-ui/core/MenuItem'
 import FormControl from '@material-ui/core/FormControl'
-import Select from '@material-ui/core/Select'
 import FormHelperText from '@material-ui/core/FormHelperText'
+import { SelectGroup } from './selectGroup'
 
 export class CountrySearch extends Component {
 
@@ -42,22 +41,12 @@ export class CountrySearch extends Component {
                             value={this.state.search.name}
                             onChange={this.handleChange.bind(this, 'name')}
                         />
-                        <br/>
-                        <FormHelperText>Grupo</FormHelperText>
-                        <Select
-                            id='group'
+                        <br />
+                        <SelectGroup
                             value={this.state.search.group}
                             onChange={this.handleChange.bind(this, 'group')}
-                            inputProps={{
-                                name: 'group',
-                                id: 'group'
-                            }}
-                            >
-                            <MenuItem value="">
-                                <em>Todos</em>
-                            </MenuItem>
-                            {this.groups.map(group => <MenuItem value={group} key={group}>{`Grupo ${group}`}</MenuItem>)}
-                        </Select>
+                            groups={this.groups}
+                        />
                     </FormControl>
                 </div>
                 <CountryList countries={this.state.countries} />

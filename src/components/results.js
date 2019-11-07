@@ -1,8 +1,9 @@
 import React, { useState, useContext } from 'react'
 import MatchRow from '../components/matchRow'
 import { CountryService } from '../services/countryService'
-import { Select, MenuItem, FormHelperText, FormControl } from '@material-ui/core'
+import { FormControl } from '@material-ui/core'
 import { Context } from '../context/Context'
+import { SelectGroup } from './selectGroup'
 
 export function Results() {
     const { matches } = useContext(Context)
@@ -16,21 +17,11 @@ export function Results() {
     return (
         <div>
             <FormControl className="formControl">
-                <FormHelperText>Grupo</FormHelperText>
-                <Select
-                    id='group'
+                <SelectGroup
                     value={group}
                     onChange={filterGroup}
-                    inputProps={{
-                        name: 'group',
-                        id: 'group'
-                    }}
-                >
-                    <MenuItem value="">
-                        <em>Todos</em>
-                    </MenuItem>
-                    {groups.map(group => <MenuItem value={group} key={group}>{group}</MenuItem>)}
-                </Select>
+                    groups={groups}
+                />
             </FormControl>
             {matches.filter((match) => match.matchesGroup(group)).map(match => <MatchRow id={match.key} match={match} key={match.key} />)}
         </div>

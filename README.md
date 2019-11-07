@@ -15,10 +15,6 @@ No hay nuevas rutas en nuestra aplicación, pero sí hacemos una ligera modifica
 
 # Fixture: resultados + tabla de posiciones
 
-## Componentes visuales
-
-![image](images/ComponentesFixture.png)
-
 ## Armado de la tabla de posiciones
 
 Para armar la tabla de posiciones, tomamos como input la lista de partido y hacemos un doble corte de control:
@@ -33,8 +29,9 @@ Es decir, tenemos un mapa:
 Recorremos los partidos generando o actualizando el mapa por grupo y país (archivo _positionTable.js_):
 
 ```javascript
+const { matches } = useContext(Context)
 const positions = new Map()
-this.props.matches.forEach(match => {
+matches.forEach(match => {
     const group = match.group()
     const groupPosition = positions.get(group) || new GroupPosition(group)
     groupPosition.processMatch(match)
@@ -128,3 +125,106 @@ Veamos cómo se implementa dentro del ejemplo del mundial.
 
 El context va a guardar los resultados, inicialmente tendrá la lista de partidos vacía.
 
+Dentro de nuestro archivo _Context.js_, definimos nuestro `Provider` que va a tener el estado global de nuesta aplicación :
+
+```javascript
+import React, { createContext, useState } from 'react'
+import { MatchService } from '../services/matchService'
+
+export const Context = createContext()
+
+export const Provider = ({ children }) => {
+    const [matches, setMatches] = useState(new MatchService().getMatches())
+    const value = {
+        matches,
+        updateMatch: (matchToUpdate) => {
+            const indexMatchToReplace = matches.findIndex((match) => match.key === matchToUpdate.key)
+            matches[indexMatchToReplace] = matchToUpdate
+            setMatches([...matches])
+        }
+    }
+    return (
+        <Context.Provider value={value}>
+            {children}
+        </Context.Provider>
+    )
+}
+```
+
+:eyes: :eyes: :eyes: Pero si es un componente funcional el provider. Como que tiene estado ????
+
+Los que nos permite tener estado dentro de un componente funcional es una noción que introdujo react en el 2019, llamada [hooks](https://es.reactjs.org/docs/hooks-intro.html) la cual nos permite reemplazar todo el comportamiento de un componente de clase (ComponentDidMount, ComponentDidUpdate, el estado, etc), aca hay una [web](https://wattenberger.com/blog/react-hooks) que tiene una explicación de como migrar a hooks
+
+
+Sabiendo esto ahora podemos conectar nuestro componente `Results` al contexto y además podríamos declarar un estado para filtrar por grupo (usando `useState`)
+
+
+```javascript
+export function Results() {
+    const { matches } = useContext(Context)
+    const [group, setGroup] = useState('')
+    const countryService = new CountryService()
+    const groups = countryService.getGroups()
+    const filterGroup = (event) => {
+        const group = event.target.value
+        setGroup(group)
+    }
+    return (
+        <div>
+            <FormControl className="formControl">
+                <SelectGroup
+                    value={group}
+                    onChange={filterGroup}
+                    groups={groups}
+                />
+            </FormControl>
+            {matches.filter((match) => match.matchesGroup(group)).map(match => <MatchRow id={match.key} match={match} key={match.key} />)}
+        </div>
+    )
+}
+```
+Vimos que se agrega un componente llamado `SelectGroup` que hace referencia al select para cambiar de grupo, lo llevamos a un componente en común ya que vimos que entre las 2 rutas este componente se repetía
+
+```javascript
+>>>SelectGroup
+
+export const SelectGroup = ({ value, onChange, groups }) => {
+    return <>
+        <FormHelperText>Grupo</FormHelperText>
+        <Select
+            id='group'
+            value={value}
+            onChange={onChange}
+            inputProps={{
+                name: 'group',
+                id: 'group'
+            }}
+        >
+            <MenuItem value="">
+                <em>Todos</em>
+            </MenuItem>
+            {groups.map(group => <MenuItem value={group} key={group}>{`Grupo ${group}`}</MenuItem>)}
+        </Select>
+    </>
+}
+```
+
+Podemos ver un `<>` suelto, eso no se parece a ningún elemento a HTML, claro que no !
+Por que esto es un `Fragment` !
+Los [fragments](https://reactjs.org/docs/fragments.html) surgen a partir de que un componente de react está obligado a si o si devolver un solo elemento (div, span, p, etc).
+Entonces si nosotros quisiéramos devolver 2 o más elementos sin tener un contenedor, porque arruina nuestros estilos, podemos usar fragment que es un tag vacío que cuando se renderiza en la web va a desaparecer
+
+Y nuestro componente `MatchRow` ahora utiliza la función `updateMatch` del contexto para actualizar el partido y que el cambio se vea reflejado en la tabla de posiciones
+
+```javascript
+function MatchRow({ match: matchProps }) {
+    const { updateMatch } = useContext(Context)
+    const [match, setMatch] = useState(matchProps)
+
+    const changeGoal = (match, team, goals) => {
+        match.updateScore(team.name, Math.trunc(goals))
+        updateMatch(match)
+        setMatch(match)
+    }
+    ...
+```    

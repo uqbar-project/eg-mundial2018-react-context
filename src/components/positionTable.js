@@ -19,7 +19,6 @@ export function PositionTable() {
         groupPosition.processMatch(match)
         positions.set(group, groupPosition)
     })
-    debugger
     if (positions.size === 0) {
         return (<div />)
     }
