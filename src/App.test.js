@@ -4,6 +4,8 @@ import App from './App'
 import { Country } from './domain/country'
 import { CountryRow } from './components/countryRow'
 import { CountrySearch } from './components/countrySearch'
+import { Results } from './components/results'
+import { Provider } from './context/Context'
 
 it('app levanta ok', () => {
   shallow(<App />)
@@ -35,9 +37,9 @@ it('buscar F devuelve la lista con un solo país, Francia', () => {
   expect(france).toBe('France')
 })
 
-/*it('buscar el grupo A devuelve 4 países y uno de ellos es Rusia', () => {
-  const wrapper = mount(<CountrySearch />)
-  const cbGroup = wrapper.find('#group')
+it('buscar el grupo A devuelve 4 países y uno de ellos es Rusia', () => {
+  const wrapper = shallow(<CountrySearch />)
+  const cbGroup = wrapper.find('SelectGroup')
   const fakeEventChange = {
     name: cbGroup,
     value: 'A'
@@ -52,11 +54,9 @@ it('buscar F devuelve la lista con un solo país, Francia', () => {
   expect(countryNames).toContain('Russia')
 })
 
-improve this test
 it('results show Russia made 5 goals against Saudi Arabia', () => {
-  const matches = new MatchService().getMatches()
-  const wrapper = mount(<Provider><Results matches={matches} /></Provider>)
-  const russia_arabia = wrapper.find('#russia_saudi-arabia').dive()
-  const goals = russia_arabia.dive().find('#russia_goles')
+  const wrapper = mount(<Provider><Results /></Provider>)
+  const match = wrapper.find('[data-testid="russia_saudi-arabia"]');
+  const goals = match.find('[data-testid="russia_goles"]').find('input')
   expect(goals.props().value).toBe(5)
-}) */
+})

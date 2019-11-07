@@ -178,7 +178,7 @@ export function Results() {
                     groups={groups}
                 />
             </FormControl>
-            {matches.filter((match) => match.matchesGroup(group)).map(match => <MatchRow id={match.key} match={match} key={match.key} />)}
+            {matches.filter((match) => match.matchesGroup(group)).map(match => <MatchRow data-testid={match.key} match={match} key={match.key} />)}
         </div>
     )
 }

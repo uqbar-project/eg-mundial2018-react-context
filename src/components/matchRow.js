@@ -37,7 +37,7 @@ function MatchTeam({ team, goal, changeGoal }) {
         <Grid item xs={6} sm={3}>
             <TextField
                 required
-                id={`${team.key}_goles`}
+                data-testid={`${team.key}_goles`}
                 type="number"
                 style={{ width: '2.5rem' }}
                 value={goal}
