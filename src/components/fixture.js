@@ -7,10 +7,10 @@ function Fixture() {
     return (
         <div>
             <Grid container spacing={0}>
-                <Grid item xs={7}>
+                <Grid item xs={5}>
                     <Results />
                 </Grid>
-                <Grid item xs={5}>
+                <Grid item xs={7}>
                     <PositionTable />
                 </Grid>
             </Grid>
