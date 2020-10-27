@@ -1,19 +1,20 @@
-import React, { useContext } from 'react'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
-import { GroupPosition } from '../domain/groupPosition'
 import Table from '@material-ui/core/Table'
 import TableBody from '@material-ui/core/TableBody'
 import TableCell from '@material-ui/core/TableCell'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
-import { CountryRow } from './countryRow';
-import { Context } from '../context/Context'
+import React, { useContext } from 'react'
 
-export function PositionTable() {
+import { Context } from '../context/Context'
+import { GroupPosition } from '../domain/groupPosition'
+import { CountryRow } from './countryRow'
+
+export function PositionTable({ group }) {
     const { matches } = useContext(Context)
     const positions = new Map()
-    matches.forEach(match => {
+    matches.filter((match) => !group || match.group() === group).forEach(match => {
         const group = match.group()
         const groupPosition = positions.get(group) || new GroupPosition(group)
         groupPosition.processMatch(match)
@@ -70,22 +71,22 @@ export function PositionRow({ value }) {
             <TableCell>
                 <CountryRow country={value.team} />
             </TableCell>
-            <TableCell numeric={true}>
+            <TableCell>
                 {value.won}
             </TableCell>
-            <TableCell numeric={true}>
+            <TableCell>
                 {value.tied}
             </TableCell>
-            <TableCell numeric={true}>
+            <TableCell>
                 {value.lost}
             </TableCell>
-            <TableCell numeric={true}>
+            <TableCell>
                 {value.goalsOwn}
             </TableCell>
-            <TableCell numeric={true}>
+            <TableCell>
                 {value.goalsAgainst}
             </TableCell>
-            <TableCell numeric={true}>
+            <TableCell>
                 <b>
                     {value.points}
                 </b>

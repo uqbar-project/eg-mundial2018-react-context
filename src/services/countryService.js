@@ -1,4 +1,4 @@
-import { Country } from "../domain/country"
+import { Country } from '../domain/country'
 
 const countries = [
     new Country('Argentina', 'D'),
@@ -35,12 +35,12 @@ const countries = [
     new Country('Uruguay', 'A')
 ]
 
-export class CountryService {
+class CountryService {
 
     getAllCountries() { return countries }
 
-    getCountries(_country) {
-        return countries.filter(country => country.matches(_country))
+    getCountries(countrySearch) {
+        return countries.filter(country => country.matches(countrySearch))
     }
 
     getCountry(name) {
@@ -52,3 +52,5 @@ export class CountryService {
         return [...new Set(groups)].sort()
     }
 }
+
+export const countryService = new CountryService()

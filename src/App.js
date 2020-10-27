@@ -1,9 +1,11 @@
-import React, { Component } from 'react'
-import logo from './images/logoRussia2018.jpg'
 import './App.css'
-import { MundialRoutes } from './routes'
+
+import React, { Component } from 'react'
 import { BrowserRouter } from 'react-router-dom'
+
 import { Provider } from './context/Context'
+import logo from './images/logoRussia.png'
+import { MundialRoutes } from './routes'
 
 class App extends Component {
   render() {

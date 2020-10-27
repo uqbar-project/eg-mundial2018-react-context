@@ -1,11 +1,11 @@
-import React, { useState, useContext } from 'react'
-
-import Grid from '@material-ui/core/Grid'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
-import { CountryRow } from "./countryRow"
+import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
+import React, { useContext, useState } from 'react'
+
 import { Context } from '../context/Context'
+import { CountryRow } from './countryRow'
 
 function MatchRow({ match: matchProps }) {
     const { updateMatch } = useContext(Context)
@@ -20,9 +20,9 @@ function MatchRow({ match: matchProps }) {
     return (
         <Card data-testid={match.key}>
             <CardContent>
-                <Grid container spacing={8}>
-                    <MatchTeam team={match.teamA} goal={match.goalsA} changeGoal={changeGoal} />
-                    <MatchTeam team={match.teamB} goal={match.goalsB} changeGoal={changeGoal} />
+                <Grid container spacing={2} item xs={12}>
+                    <MatchTeam item xs={6} team={match.teamA} goal={match.goalsA} changeGoal={changeGoal} />
+                    <MatchTeam item xs={6} team={match.teamB} goal={match.goalsB} changeGoal={changeGoal} />
                 </Grid>
             </CardContent>
         </Card>

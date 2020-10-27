@@ -36,7 +36,9 @@ export class PositionItem {
     }
 
     processMatch(goalsOwn, goalsAgainst) {
-        if (!goalsOwn || !goalsAgainst) return
+        // ojo, no va !goalsOwn
+        if (goalsOwn === undefined || goalsAgainst === undefined) return
+        //
         this.goalsOwn += goalsOwn
         this.goalsAgainst += goalsAgainst
         if (goalsOwn > goalsAgainst) this.won++

@@ -1,22 +1,21 @@
-import React, { Component } from 'react'
-import { CountryService } from '../services/countryService'
-import { CountryList } from './countryList'
-import { Country } from '../domain/country'
-
-import TextField from '@material-ui/core/TextField'
 import FormControl from '@material-ui/core/FormControl'
 import FormHelperText from '@material-ui/core/FormHelperText'
+import TextField from '@material-ui/core/TextField'
+import React, { Component } from 'react'
+
+import { Country } from '../domain/country'
+import { countryService } from '../services/countryService'
+import { CountryList } from './countryList'
 import { SelectGroup } from './selectGroup'
 
 export class CountrySearch extends Component {
 
     constructor(props) {
         super(props)
-        this.countryService = new CountryService()
-        this.groups = this.countryService.getGroups()
+        this.groups = countryService.getGroups()
         this.state = {
             search: new Country("", ""),
-            countries: this.countryService.getAllCountries()
+            countries: countryService.getAllCountries()
         }
     }
 
@@ -26,7 +25,7 @@ export class CountrySearch extends Component {
         search[property] = event.target.value
         this.setState({
             search: search,
-            countries: this.countryService.getCountries(search)
+            countries: countryService.getCountries(search)
         })
     }
 

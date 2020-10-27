@@ -13,8 +13,8 @@ export class Country {
     }
 
     /** Funciones auxiliares para búsquedas */
-    matches(_country) {
-        return this.match("name", _country) && this.match("group", _country)
+    matches(country) {
+        return this.match("name", country) && this.match("group", country)
     }
 
     match(property, other) {
