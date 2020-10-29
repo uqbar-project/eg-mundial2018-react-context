@@ -20,7 +20,7 @@ function MatchRow({ match: matchProps }) {
     return (
         <Card data-testid={match.key}>
             <CardContent>
-                <Grid container spacing={2} item xs={12}>
+                <Grid container item xs={12}>
                     <MatchTeam item xs={6} team={match.teamA} goal={match.goalsA} changeGoal={changeGoal} />
                     <MatchTeam item xs={6} team={match.teamB} goal={match.goalsB} changeGoal={changeGoal} />
                 </Grid>
@@ -30,20 +30,22 @@ function MatchRow({ match: matchProps }) {
 }
 export default MatchRow
 function MatchTeam({ team, goal, changeGoal }) {
-    return <>
-        <Grid item xs={6} sm={3}>
-            <CountryRow country={team} />
-        </Grid>
-        <Grid item xs={6} sm={3}>
-            <TextField
-                required
-                data-testid={`${team.key}_goles`}
-                type="number"
-                style={{ width: '2.5rem' }}
-                value={goal}
-                onChange={(event) => changeGoal(team, event.target.value)}
-                margin="normal"
-            />
-        </Grid>
-    </>
+    return (
+        <>
+            <Grid item xs={9} sm={4}>
+                <CountryRow country={team} />
+            </Grid>
+            <Grid item xs={3} sm={2}>
+                <TextField
+                    required
+                    data-testid={`${team.key}_goles`}
+                    type="number"
+                    className="goles"
+                    value={goal}
+                    onChange={(event) => changeGoal(team, event.target.value)}
+                    margin="normal"
+                />
+            </Grid>
+        </>
+    )
 }
