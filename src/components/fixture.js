@@ -8,7 +8,7 @@ import { Results } from './results'
 import { SelectGroup } from './selectGroup'
 
 
-function Fixture() {
+const Fixture = () => {
     const [group, setGroup] = useState('')
     const groups = countryService.getGroups()
     const filterGroup = (event) => {

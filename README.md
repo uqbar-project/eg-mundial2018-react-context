@@ -2,16 +2,17 @@
 
 [![Build Status](https://travis-ci.org/uqbar-project/eg-mundial2018-react-context.svg?branch=master)](https://travis-ci.org/uqbar-project/eg-mundial2018-react-context)
 
-<img src="video/demo.gif" height="130%" width="130%"/>
+<img src="video/demo2.gif"/>
 
-En la tercera iteración, vamos a modificar el caso de uso "Cargar resultados del mundial" para incorporarle una tabla de posiciones dinámica.
+La aplicación permite la reutilización de varios componentes:
+
+- `countryRow`: muestra la bandera y el nombre de un país, y lo utilizamos en la búsqueda de países que participan del mundial, en la fila que nos permite cargar los resultados de los partidos y en la tabla de posiciones.
+- `selectGroup`: permite seleccionar un grupo para filtrar los países participantes de la copa o bien para seleccionar la tabla de posiciones y la carga de los resultados de los partidos
 
 # Rutas
 
-No hay nuevas rutas en nuestra aplicación, pero sí hacemos una ligera modificación:
-
 - la ruta raíz '/' muestra la búsqueda de países que participan del mundial
-- reemplazamos la ruta '/resultados' por '/fixture'
+- la ruta '/fixture' permite ver/cargar los resultados de los partidos y la tabla de posiciones
 
 # Fixture: resultados + tabla de posiciones
 
@@ -28,10 +29,10 @@ Es decir, tenemos un mapa:
 
 Recorremos los partidos generando o actualizando el mapa por grupo y país (archivo _positionTable.js_):
 
-```javascript
+```js
 const { matches } = useContext(Context)
 const positions = new Map()
-matches.forEach(match => {
+matches.filter((match) => match.matchesGroup(group)).forEach(match => {
     const group = match.group()
     const groupPosition = positions.get(group) || new GroupPosition(group)
     groupPosition.processMatch(match)
@@ -41,25 +42,25 @@ matches.forEach(match => {
 
 El método processMatch de PositionGroup hace el procesamiento para el equipo local y el visitante:
 
-```javascript
-    processMatch(match) {
-        this.searchPositionItem(match.teamA).processMatch(match.goalsA, match.goalsB)
-        this.searchPositionItem(match.teamB).processMatch(match.goalsB, match.goalsA)
-    }
+```js
+processMatch(match) {
+    this.searchPositionItem(match.teamA).processMatch(match.goalsA, match.goalsB)
+    this.searchPositionItem(match.teamB).processMatch(match.goalsB, match.goalsA)
+}
 
-    searchPositionItem(team) {
-        let result = this.positionItems.find(item => item.team.matches(team))
-        if (!result) {
-            result = new PositionItem(team)
-            this.positionItems.push(result)
-        }
-        return result
+searchPositionItem(team) {
+    let result = this.positionItems.find(item => item.team.matches(team))
+    if (!result) {
+        result = new PositionItem(team)
+        this.positionItems.push(result)
     }
+    return result
+}
 ```
 
 Veamos el método processMatch del objeto de negocio positionItem, que representa una línea dentro de la tabla de posiciones:
 
-```javascript
+```js
 processMatch(goalsOwn, goalsAgainst) {
     if (goalsOwn === undefined || goalsAgainst === undefined) return
     this.goalsOwn += goalsOwn
@@ -70,9 +71,11 @@ processMatch(goalsOwn, goalsAgainst) {
 }
 ```
 
+> Ojo que no es conveniente preguntar `if (!goalsOwn || !goalsAgainst)`, porque 0 es falsy. Por lo tanto cualquier partido en el que alguno de los equipos no haya metido goles no va a sumar en la tabla de posiciones.
+
 Para mostrar la tabla, el componente PositionTable (vista) en su método render dibuja la tabla de la siguiente manera:
 
-```javascript
+```js
 return (
     <Card key={'cardPosiciones'}>
         <CardContent key={'contentPosiciones'}>
@@ -90,10 +93,10 @@ return (
 
 Partimos de positions, que es el mapa que construimos previamente. Como el mapa de ECMAScript no conoce la función map, tenemos que pasarlo a una lista utilizando el _spread operator_ `[...positions]`. Esto nos da una lista de objetos que tiene `{grupo: nombre_grupo, groupPosition: lista_de_equipos}`. Pero como la lista de equipos no está ordenada, llamamos a un método en groupPosition que ordena los equipos por puntos:
 
-```javascript
->>GroupPosition
+```js
+// en GroupPosition
 positions() {
-    return this.positionItems.sort((item1, item2) => item1.order <= item2.order)
+    return this.positionItems.sort((a, b) => b.order - a.order)
 }
 
 >>PositionItem
@@ -127,10 +130,7 @@ El context va a guardar los resultados, inicialmente tendrá la lista de partido
 
 Dentro de nuestro archivo _Context.js_, definimos nuestro `Provider` que va a tener el estado global de nuesta aplicación :
 
-```javascript
-import React, { createContext, useState } from 'react'
-import { MatchService } from '../services/matchService'
-
+```js
 export const Context = createContext()
 
 export const Provider = ({ children }) => {
@@ -151,73 +151,33 @@ export const Provider = ({ children }) => {
 }
 ```
 
-:eyes: :eyes: :eyes: Pero si es un componente funcional el provider. Como que tiene estado ????
+Mediante los [hooks](https://es.reactjs.org/docs/hooks-intro.html)
 
-Los que nos permite tener estado dentro de un componente funcional es una noción que introdujo react en el 2019, llamada [hooks](https://es.reactjs.org/docs/hooks-intro.html) la cual nos permite reemplazar todo el comportamiento de un componente de clase (ComponentDidMount, ComponentDidUpdate, el estado, etc), aca hay una [web](https://wattenberger.com/blog/react-hooks) que tiene una explicación de como migrar a hooks
+- `useState` mantenemos el estado del contexto, que son los partidos disputados
+- `value` nos ofrece un mecanismo para mutar ese estado cada vez que nos pasen el partido a actualizar. Simplemente lo que hacemos es buscarlo en la lista de partidos, pisar el resultado del partido con el nuevo (ej. en lugar de Argentina 0, Croacia 3 podríamos decirle Argentina 3, Croacia 2) y luego debemos llamar al setMatches para que se propague ese cambio a cada uno de los hijos (en nuestro caso los que lo deben tomar son el de carga de partidos, para ver el input cambiado y la tabla de posiciones que se recalcula en base a los partidos)
 
+Para más información hay una [web](https://wattenberger.com/blog/react-hooks) que tiene una explicación de como migrar a hooks.
 
-Sabiendo esto ahora podemos conectar nuestro componente `Results` al contexto y además podríamos declarar un estado para filtrar por grupo (usando `useState`)
+Sabiendo esto ahora podemos conectar nuestro componente `Results` al contexto
 
-
-```javascript
-export function Results() {
+```js
+export const Results = ({ group }) => {
     const { matches } = useContext(Context)
-    const [group, setGroup] = useState('')
-    const countryService = new CountryService()
-    const groups = countryService.getGroups()
-    const filterGroup = (event) => {
-        const group = event.target.value
-        setGroup(group)
-    }
+    const groupMatches = matches.filter((match) => match.matchesGroup(group))
     return (
         <div>
-            <FormControl className="formControl">
-                <SelectGroup
-                    value={group}
-                    onChange={filterGroup}
-                    groups={groups}
-                />
-            </FormControl>
-            {matches.filter((match) => match.matchesGroup(group)).map(match => <MatchRow data-testid={match.key} match={match} key={match.key} />)}
+            {groupMatches.map(match => <MatchRow data-testid={match.key} match={match} key={match.key} />)}
         </div>
     )
 }
 ```
-Vimos que se agrega un componente llamado `SelectGroup` que hace referencia al select para cambiar de grupo, lo llevamos a un componente en común ya que vimos que entre las 2 rutas este componente se repetía
 
-```javascript
->>>SelectGroup
-
-export const SelectGroup = ({ value, onChange, groups }) => {
-    return <>
-        <FormHelperText>Grupo</FormHelperText>
-        <Select
-            id='group'
-            value={value}
-            onChange={onChange}
-            inputProps={{
-                name: 'group',
-                id: 'group'
-            }}
-        >
-            <MenuItem value="">
-                <em>Todos</em>
-            </MenuItem>
-            {groups.map(group => <MenuItem value={group} key={group}>{`Grupo ${group}`}</MenuItem>)}
-        </Select>
-    </>
-}
-```
-
-Podemos ver un `<>` suelto, eso no se parece a ningún elemento a HTML, claro que no !
-Por que esto es un `Fragment` !
-Los [fragments](https://reactjs.org/docs/fragments.html) surgen a partir de que un componente de react está obligado a si o si devolver un solo elemento (div, span, p, etc).
-Entonces si nosotros quisiéramos devolver 2 o más elementos sin tener un contenedor, porque arruina nuestros estilos, podemos usar fragment que es un tag vacío que cuando se renderiza en la web va a desaparecer
+Podemos ver un `<>` suelto, eso no se parece a ningún elemento a HTML, porque es un `Fragment`, la expresión JSX equivalente al Null Pattern de un componente. Los [fragments](https://reactjs.org/docs/fragments.html) surgen a partir de que un componente de react está obligado a devolver sí o sí un solo elemento (div, span, p, etc). Entonces si nosotros quisiéramos devolver 2 o más elementos sin tener un contenedor, porque arruina nuestros estilos, podemos usar fragment que es un tag vacío que cuando se renderiza en la web va a desaparecer.
 
 Y nuestro componente `MatchRow` ahora utiliza la función `updateMatch` del contexto para actualizar el partido y que el cambio se vea reflejado en la tabla de posiciones
 
-```javascript
-function MatchRow({ match: matchProps }) {
+```js
+export const MatchRow = ({ match: matchProps }) => {
     const { updateMatch } = useContext(Context)
     const [match, setMatch] = useState(matchProps)
 
@@ -227,4 +187,77 @@ function MatchRow({ match: matchProps }) {
         setMatch(match)
     }
     ...
-```    
+```
+
+## Testing
+
+Tenemos tres test bastante integrales, los dos primeros nos sirven para probar los dos escenarios básicos de la búsqueda de países
+
+- por letras
+- por grupo
+
+```js
+it('buscar F devuelve la lista con un solo país, Francia', async () => {
+  const { getByTestId } = render(<CountrySearch />)
+  const countrySearch = getByTestId('country')
+  userEvent.type(countrySearch, 'F')
+  const allCountries = await screen.findAllByTestId('countryRow')
+  expect(allCountries[0]).toHaveTextContent('France')
+})
+
+it('buscar el grupo A devuelve los países que particpan en él', async () => {
+  const { getByRole } = render(<CountrySearch />)
+  fireEvent.mouseDown(getByRole('button'))
+  const listbox = within(getByRole('listbox'))
+  fireEvent.click(listbox.getByText(/A/i))
+  const allCountries = await screen.findAllByTestId('countryRow')
+  expect(allCountries.length).toBe(4)
+  const groupACountries = allCountries.map(country => country.textContent).sort((a, b) => a >= b)
+  expect(groupACountries).toStrictEqual(['Egypt', 'Russia', 'Saudi Arabia', 'Uruguay'])
+})
+```
+
+Algunos trucos que utilizamos:
+
+- en el primer test
+  - `userEvent.type(countrySearch, 'F')` es una variante más feliz que tener que disparar un `fireEvent.change` respetando el json `{ target: { value: 'F' }}`
+  - una vez que seleccionamos, tenemos que esperar a que se actualice el estado y vuelva a renderizar, por eso invocamos a `screen.findAllByTestId('countryRow)`
+- en el segundo test
+  - simular la búsqueda del combo requiere presionar el botón que está a la derecha para abrir la lista desplegable, posicionarse en el listbox y presionar la opción que tiene el grupo A, esas son las tres líneas mouseDown, getByRole y luego un click
+  - luego hay que esperar que renderice nuevamente la página, tomamos los valores `innerHTML` de cada componente `countryRow`, y para estar seguros de que filtró los países que queremos los ordenamos alfabétiamente
+
+Por último el test que verifica la carga de un resultado requiere ser específico respecto al data-testid que queremos, por eso cada input debe considerar
+
+- el partido: `russia_saudi-arabia`
+- el equipo que se está cargando: `russia`
+- y algún identificador de qué input es: `goles`
+
+eso nos permite accederlo rápidamente
+
+```js
+it('results show Russia made 5 goals against Saudi Arabia', async () => {
+  const { getByTestId } = render(
+    <Provider>
+      <Results />
+    </Provider >
+  )
+  const golesRussia = getByTestId('russia_saudi-arabia_russia_goles')
+  expect(golesRussia).toHaveValue(5)
+})
+```
+
+Otro truco importante es que debemos pasarle a Material el data-testid como una `input-prop`:
+
+```js
+<TextField
+    required
+    inputProps={{ 'data-testid': `${match.key}_${team.key}_goles` }}
+```
+
+ya que así no funciona
+
+```js
+<TextField
+    required
+    data-testid={`${match.key}_${team.key}_goles`}
+```

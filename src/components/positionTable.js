@@ -11,17 +11,17 @@ import { Context } from '../context/Context'
 import { GroupPosition } from '../domain/groupPosition'
 import { CountryRow } from './countryRow'
 
-export function PositionTable({ group }) {
+export const PositionTable = ({ group }) => {
     const { matches } = useContext(Context)
     const positions = new Map()
-    matches.filter((match) => !group || match.group() === group).forEach(match => {
+    matches.filter((match) => match.matchesGroup(group)).forEach(match => {
         const group = match.group()
         const groupPosition = positions.get(group) || new GroupPosition(group)
         groupPosition.processMatch(match)
         positions.set(group, groupPosition)
     })
     if (positions.size === 0) {
-        return (<div />)
+        return <></>
     }
 
     return (
@@ -40,7 +40,7 @@ export function PositionTable({ group }) {
 
 }
 
-export function PositionGroupTable(props) {
+export const PositionGroupTable = (props) => {
     return (
         <div>
             <h4>Grupo {props.group}</h4>
@@ -65,7 +65,7 @@ export function PositionGroupTable(props) {
     )
 }
 
-export function PositionRow({ value }) {
+export const PositionRow = ({ value }) => {
     return (
         <TableRow>
             <TableCell>

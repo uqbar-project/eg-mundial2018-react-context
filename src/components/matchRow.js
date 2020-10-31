@@ -7,7 +7,7 @@ import React, { useContext, useState } from 'react'
 import { Context } from '../context/Context'
 import { CountryRow } from './countryRow'
 
-function MatchRow({ match: matchProps }) {
+const MatchRow = ({ match: matchProps }) => {
     const { updateMatch } = useContext(Context)
     const [match, setMatch] = useState(matchProps)
 
@@ -29,7 +29,7 @@ function MatchRow({ match: matchProps }) {
     )
 }
 export default MatchRow
-function MatchTeam({ match, team, goal, changeGoal }) {
+const MatchTeam = ({ match, team, goal, changeGoal }) => {
     return (
         <>
             <Grid item xs={9} sm={4}>
