@@ -25,7 +25,7 @@ export class Match {
     }
 
     matchesGroup(group) {
-        return this.group().includes(group)
+        return !group || this.group().includes(group)
     }
 
     updateScore(teamName, goals) {

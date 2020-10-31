@@ -9,7 +9,7 @@ export class CountryList extends Component {
 
     render() {
         const countryList = this.props.countries.map(country =>
-            <Grid item xs={2}>
+            <Grid item xs={2} key={'grid' + country.name}>
                 <Card key={'card' + country.name}>
                     <CardContent key={'content' + country.name}>
                         <CountryRow country={country} key={country.name} />
@@ -19,7 +19,7 @@ export class CountryList extends Component {
         )
 
         return (
-            <Grid container fluid item xs={12} spacing={3}>
+            <Grid container fluid="true" item xs={12} spacing={3}>
                 {countryList}
             </Grid>
         )

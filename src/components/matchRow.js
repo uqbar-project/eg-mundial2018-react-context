@@ -21,15 +21,15 @@ function MatchRow({ match: matchProps }) {
         <Card data-testid={match.key}>
             <CardContent>
                 <Grid container item xs={12}>
-                    <MatchTeam item xs={6} team={match.teamA} goal={match.goalsA} changeGoal={changeGoal} />
-                    <MatchTeam item xs={6} team={match.teamB} goal={match.goalsB} changeGoal={changeGoal} />
+                    <MatchTeam item xs={6} match={match} team={match.teamA} goal={match.goalsA} changeGoal={changeGoal} />
+                    <MatchTeam item xs={6} match={match} team={match.teamB} goal={match.goalsB} changeGoal={changeGoal} />
                 </Grid>
             </CardContent>
         </Card>
     )
 }
 export default MatchRow
-function MatchTeam({ team, goal, changeGoal }) {
+function MatchTeam({ match, team, goal, changeGoal }) {
     return (
         <>
             <Grid item xs={9} sm={4}>
@@ -38,7 +38,7 @@ function MatchTeam({ team, goal, changeGoal }) {
             <Grid item xs={3} sm={2}>
                 <TextField
                     required
-                    data-testid={`${team.key}_goles`}
+                    inputProps={{ 'data-testid': `${match.key}_${team.key}_goles` }}
                     type="number"
                     className="goles"
                     value={goal}

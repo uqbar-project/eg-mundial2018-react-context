@@ -1,5 +1,5 @@
 export class Country {
-    constructor(name, group) {
+    constructor(name = '', group = '') {
         this.name = name
         this.group = group
     }

@@ -10,47 +10,48 @@ import { SelectGroup } from './selectGroup'
 
 export class CountrySearch extends Component {
 
-    constructor(props) {
-        super(props)
-        this.groups = countryService.getGroups()
-        this.state = {
-            search: new Country("", ""),
-            countries: countryService.getAllCountries()
-        }
+  constructor(props) {
+    super(props)
+    this.groups = countryService.getGroups()
+    this.state = {
+      search: new Country(),
+      countries: countryService.getAllCountries()
     }
+  }
 
-    handleChange(property, event) {
-        event.preventDefault()
-        const search = this.state.search
-        search[property] = event.target.value
-        this.setState({
-            search: search,
-            countries: countryService.getCountries(search)
-        })
-    }
+  handleChange(property, event) {
+    event.preventDefault()
+    const search = this.state.search
+    search[property] = event.target.value
+    this.setState({
+      search: search,
+      countries: countryService.getCountries(search)
+    })
+  }
 
-    render() {
-        return (
-            <div>
-                <div className="search">
-                    <FormControl className="formControl">
-                        <FormHelperText>País</FormHelperText>
-                        <TextField
-                            id="country"
-                            value={this.state.search.name}
-                            onChange={this.handleChange.bind(this, 'name')}
-                        />
-                        <br />
-                        <SelectGroup
-                            value={this.state.search.group}
-                            onChange={this.handleChange.bind(this, 'group')}
-                            groups={this.groups}
-                        />
-                    </FormControl>
-                </div>
-                <CountryList countries={this.state.countries} />
-            </div>
-        )
-    }
+  render() {
+    return (
+      <div>
+        <div className="search">
+          <FormControl className="formControl">
+            <FormHelperText>País</FormHelperText>
+            <TextField
+              inputProps={{ 'data-testid': 'country' }}
+              value={this.state.search.name}
+              onChange={this.handleChange.bind(this, 'name')}
+            />
+            <br />
+            <SelectGroup
+              inputProps={{ 'data-testid': 'group' }}
+              value={this.state.search.group}
+              onChange={this.handleChange.bind(this, 'group')}
+              groups={this.groups}
+            />
+          </FormControl>
+        </div>
+        <CountryList countries={this.state.countries} />
+      </div>
+    )
+  }
 
 }

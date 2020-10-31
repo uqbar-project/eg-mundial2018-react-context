@@ -1,62 +1,36 @@
+import { fireEvent, render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import React from 'react'
-import { shallow, mount } from 'enzyme'
-import App from './App'
-import { Country } from './domain/country'
-import { CountryRow } from './components/countryRow'
+
 import { CountrySearch } from './components/countrySearch'
 import { Results } from './components/results'
 import { Provider } from './context/Context'
 
-it('app levanta ok', () => {
-  shallow(<App />)
-})
-it('countryRow devuelve el país dentro de un div inline', () => {
-  const wrapper = shallow(<CountryRow country={new Country("South Korea", "F")} />)
-  const p = wrapper.find('div.inline')
-  expect(p.text().trim()).toBe('South Korea')
-})
-it('countryRow devuelve la bandera del pais', () => {
-  const wrapper = shallow(<CountryRow country={new Country("South Korea", "F")} />)
-  const img = wrapper.find('img')
-  expect(img.prop("src")).toBe('/assets/south-korea.png')
-})
-it('buscar F devuelve la lista con un solo país, Francia', () => {
-  const wrapper = shallow(<CountrySearch />)
-  const txtName = wrapper.find('#country')
-  const fakeEventChange = {
-    name: txtName,
-    value: 'F'
-  }
-  txtName.simulate('change', {
-    target: fakeEventChange,
-    preventDefault: () => { }
-  })
-  const result = wrapper.state('countries')
-  expect(result.length).toBe(1)
-  const france = result[0].name
-  expect(france).toBe('France')
+it('buscar F devuelve la lista con un solo país, Francia', async () => {
+  const { getByTestId } = render(<CountrySearch />)
+  const countrySearch = getByTestId('country')
+  userEvent.type(countrySearch, 'F')
+  const allCountries = await screen.findAllByTestId('countryRow')
+  expect(allCountries[0]).toHaveTextContent('France')
 })
 
-it('buscar el grupo A devuelve 4 países y uno de ellos es Rusia', () => {
-  const wrapper = shallow(<CountrySearch />)
-  const cbGroup = wrapper.find('SelectGroup')
-  const fakeEventChange = {
-    name: cbGroup,
-    value: 'A'
-  }
-  cbGroup.simulate('change', {
-    target: fakeEventChange,
-    preventDefault: () => { }
-  })
-  const result = wrapper.state('countries')
-  expect(result.length).toBe(4)
-  const countryNames = result.map(country => country.name)
-  expect(countryNames).toContain('Russia')
+it('buscar el grupo A devuelve los países que particpan en él', async () => {
+  const { getByRole } = render(<CountrySearch />)
+  fireEvent.mouseDown(getByRole('button'))
+  const listbox = within(getByRole('listbox'))
+  fireEvent.click(listbox.getByText(/A/i))
+  const allCountries = await screen.findAllByTestId('countryRow')
+  expect(allCountries.length).toBe(4)
+  const groupACountries = allCountries.map(country => country.textContent).sort((a, b) => a >= b)
+  expect(groupACountries).toStrictEqual(['Egypt', 'Russia', 'Saudi Arabia', 'Uruguay'])
 })
 
-it('results show Russia made 5 goals against Saudi Arabia', () => {
-  const wrapper = mount(<Provider><Results /></Provider>)
-  const match = wrapper.find('[data-testid="russia_saudi-arabia"]');
-  const goals = match.find('[data-testid="russia_goles"]').find('input')
-  expect(goals.props().value).toBe(5)
+it('results show Russia made 5 goals against Saudi Arabia', async () => {
+  const { getByTestId } = render(
+    <Provider>
+      <Results />
+    </Provider >
+  )
+  const golesRussia = getByTestId('russia_saudi-arabia_russia_goles')
+  expect(golesRussia).toHaveValue(5)
 })
