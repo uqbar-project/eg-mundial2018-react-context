@@ -116,7 +116,7 @@ Bueno, no solo por puntos, también por diferencia de gol y goles a favor.
 Tenemos dos componentes que tienen un estado compartido: 
 
 - el componente Results toma como input los partidos del mundial para eventualmente filtrar los de una zona seleccionada (o directamente mostrar todos), y permite editar los resultados del mundial
-- el componente PositionTable toma como input los partidos del mundial para armar las tablas de posiciones
+- el componente PositionTable toma como input los partidos del mundial para armar las tablas de posiciones (y adicionalmente filtrar por zona)
 
 Pero además, si alguien modifica un resultado (componente _MatchRow_ hijo del componente padre _Results_), eso debería actualizar la tabla de posiciones. React tiene mecanismos para actualizar estados desde un componente hacia otros, pero esta es una buena ocasión para incorporar **React Context** a nuestra aplicación, que nos va a permitir manejar un estado compartido entre componentes para simplificar el esquema de notificaciones ante un cambio.
 

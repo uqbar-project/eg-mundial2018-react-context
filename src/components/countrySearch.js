@@ -24,7 +24,7 @@ export class CountrySearch extends Component {
     const search = this.state.search
     search[property] = event.target.value
     this.setState({
-      search: search,
+      search,
       countries: countryService.getCountries(search)
     })
   }
