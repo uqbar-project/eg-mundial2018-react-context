@@ -9,6 +9,8 @@ import { Provider } from './context/Context'
 it('buscar F devuelve la lista con un solo país, Francia', async () => {
   const { getByTestId } = render(<CountrySearch />)
   const countrySearch = getByTestId('country')
+  // bajo nivel fireEvent.change(countrySearch, { target: { value: 'F' }})
+  // alto nivel
   userEvent.type(countrySearch, 'F')
   const allCountries = await screen.findAllByTestId('countryRow')
   expect(allCountries[0]).toHaveTextContent('France')
@@ -25,7 +27,7 @@ it('buscar el grupo A devuelve los países que particpan en él', async () => {
   expect(groupACountries).toStrictEqual(['Egypt', 'Russia', 'Saudi Arabia', 'Uruguay'])
 })
 
-it('results show Russia made 5 goals against Saudi Arabia', async () => {
+it('results show Russia made 5 goals against Saudi Arabia', () => {
   const { getByTestId } = render(
     <Provider>
       <Results />

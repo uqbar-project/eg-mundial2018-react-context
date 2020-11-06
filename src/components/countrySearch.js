@@ -15,7 +15,7 @@ export class CountrySearch extends Component {
     this.groups = countryService.getGroups()
     this.state = {
       search: new Country(),
-      countries: countryService.getAllCountries()
+      countries: [],
     }
   }
 

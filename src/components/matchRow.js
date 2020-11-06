@@ -7,14 +7,12 @@ import React, { useContext, useState } from 'react'
 import { Context } from '../context/Context'
 import { CountryRow } from './countryRow'
 
-const MatchRow = ({ match: matchProps }) => {
+const MatchRow = ({ match }) => {
     const { updateMatch } = useContext(Context)
-    const [match, setMatch] = useState(matchProps)
 
     const changeGoal = (team, goals) => {
         match.updateScore(team.name, Math.trunc(goals))
         updateMatch(match)
-        setMatch(match)
     }
 
     return (
@@ -29,6 +27,7 @@ const MatchRow = ({ match: matchProps }) => {
     )
 }
 export default MatchRow
+
 const MatchTeam = ({ match, team, goal, changeGoal }) => {
     return (
         <>
