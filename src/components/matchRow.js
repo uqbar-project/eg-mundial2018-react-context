@@ -2,7 +2,7 @@ import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
-import React, { useContext, useState } from 'react'
+import React, { useContext } from 'react'
 
 import { Context } from '../context/Context'
 import { CountryRow } from './countryRow'
